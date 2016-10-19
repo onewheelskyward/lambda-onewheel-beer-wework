@@ -1,0 +1,27 @@
+{
+  "name": "lambda-onewheel-beer-wework",
+  "version": "0.0.0",
+  "description": "WeWork slack module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/onewheelskyward/lambda-onewheel-beer-wework.git"
+  },
+  "keywords": [
+    "beer",
+    "wework",
+    "lambda"
+  ],
+  "author": "Andrew Kreps",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/onewheelskyward/lambda-onewheel-beer-wework/issues"
+  },
+  "homepage": "https://github.com/onewheelskyward/lambda-onewheel-beer-wework#readme",
+  "dependencies": {
+    "dynamodb-doc": "^1.0.0"
+  }
+}
