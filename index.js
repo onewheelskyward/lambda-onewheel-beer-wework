@@ -1,45 +1,75 @@
-'use strict';
+// 'use strict';
 
 console.log('Loading function');
+const aws = require('aws-sdk');
 const doc = require('dynamodb-doc');
 const dynamo = new doc.DynamoDB();
+const superagent = require('superagent');
+const util = require('util');
 
+exports.handler = function(event, context) {
+    console.log('Received event:', JSON.stringify(event, null, 2));
 
-/**
- * Demonstrates a simple HTTP endpoint using API Gateway. You have full
- * access to the request and response payload, including headers and
- * status code.
- *
- * To scan a DynamoDB table, make a GET request with the TableName as a
- * query string parameter. To put, update, or delete an item, make a POST,
- * PUT, or DELETE request respectively, passing in the payload to the
- * DynamoDB API as a JSON body.
- */
-exports.handler = (event, context, callback) => {
-    //console.log('Received event:', JSON.stringify(event, null, 2));
+    var input = event.queryStringParameters.text;
 
-    const done = (err, res) => callback(null, {
-        statusCode: err ? '400' : '200',
-        body: err ? err.message : JSON.stringify(res),
-        headers: {
-            'Content-Type': 'application/json',
-        },
-    });
+    if (!input.trim()) {
+        dynamo.scan({ TableName: 'WeWork' }, function (err, result) {
+            console.log("Get result: " + JSON.stringify(result));
+            result.Items.forEach(function (beer) {
+                superagent
+                    .post(event.queryStringParameters.response_url)
+                    .send({ response_type: 'in_channel', text: beer.location + ": " + beer.beer})
+                    .set('Content-type', 'application/json')
+                    .end(function(err, res) {
+                        console.log("Posted successfully!");
+                        context.succeed({
+                            statusCode: 200,
+                            headers: {},
+                            body: ""
+                        });
+                    });
+            })
+        });
+    } else {
+        var beerArray = input.split(' ');
 
-    switch (event.httpMethod) {
-        case 'DELETE':
-            dynamo.deleteItem(JSON.parse(event.body), done);
-            break;
-        case 'GET':
-            dynamo.scan({ TableName: 'WeWork' }, done);
-            break;
-        case 'POST':
-            dynamo.putItem(JSON.parse(event.body), done);
-            break;
-        case 'PUT':
-            dynamo.updateItem(JSON.parse(event.body), done);
-            break;
-        default:
-            done(new Error(`Unsupported method "${event.httpMethod}"`));
+        var beerFloor = beerArray[0].toLowerCase();
+        var beerString = beerArray.slice(1, beerArray.length).join(' ');
+
+        var validLocations = ['1fn', '1fs', '2fn', '2fs', '3fn'];
+
+        if (validLocations.filter(function(location) { if (location == beerFloor) { return true; }})) {
+            var params = {
+                Item: { /* required */
+                    location: beerFloor,
+                    beer: beerString
+                },
+                TableName: 'WeWork' /* required */
+            };
+
+            console.log("Placing item in dynamo: " + JSON.stringify(params));
+
+            dynamo.putItem(params, function(err, data) {
+                if (err) {
+                    console.error("Unable to add item. Error JSON: ", JSON.stringify(err, null, 2));
+                    context.fail();
+                } else {
+                    console.log("Item added.");
+                    superagent
+                        .post(event.queryStringParameters.response_url)
+                        .send({ response_type: 'in_channel', text: beerString + ' added to ' + beerFloor })
+                        .set('Content-type', 'application/json')
+                        .end(function(err, res) {
+                            console.log("Posted successfully!");
+                            context.succeed({
+                                statusCode: 200,
+                                headers: {},
+                                body: ""
+                            });
+                        });
+                }
+            });
+        }
+
     }
 };
