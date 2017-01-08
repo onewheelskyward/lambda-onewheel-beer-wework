@@ -42,11 +42,18 @@ exports.handler = function(event, context) {
                     context.fail();
                 } else {
                     console.log("Item added.");
-                    context.succeed({
-                        statusCode: 200,
-                        headers: {},
-                        body: "Welp"
-                    });
+                    superagent.get("https://slack.com/api/auth.test")
+                        .query({
+                            token: res.body.access_token
+                        })
+                        .end(function (err, res) {
+                            console.log(JSON.stringify(res.body));
+                            context.succeed({
+                                statusCode: 200,
+                                headers: {},
+                                body: JSON.stringify(res.body)
+                            });
+                        });
                 }
             });
         });

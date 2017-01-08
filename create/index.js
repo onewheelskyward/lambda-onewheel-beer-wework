@@ -2,7 +2,6 @@ const aws = require('aws-sdk');
 const doc = require('dynamodb-doc');
 const dynamo = new doc.DynamoDB();
 const superagent = require('superagent');
-// const querystring = require('querystring');
 
 exports.handler = function(event, context) {
     console.log('Received event: ', JSON.stringify(event, null, 2));
