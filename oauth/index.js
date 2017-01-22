@@ -3,6 +3,8 @@ const doc = require('dynamodb-doc');
 const dynamo = new doc.DynamoDB();
 const superagent = require('superagent');
 
+const tableName = 'WeBeerOauth';
+
 exports.handler = function(event, context) {
     console.log('Received event params:', JSON.stringify(event.queryStringParameters, null, 2));
 
@@ -31,7 +33,7 @@ exports.handler = function(event, context) {
                     team_name: res.body.team_name,
                     team_id: res.body.team_id
                 },
-                TableName: 'WeWorkOauth' /* required */
+                TableName: tableName /* required */
             };
 
             console.log("Placing item in dynamo: " + JSON.stringify(params));
@@ -49,9 +51,9 @@ exports.handler = function(event, context) {
                         .end(function (err, res) {
                             console.log(JSON.stringify(res.body));
                             context.succeed({
-                                statusCode: 200,
-                                headers: {},
-                                body: JSON.stringify(res.body)
+                                statusCode: 301,
+                                headers: {location: 'https://slack.jstal.in/webeer/complete.html'},
+                                body: ""
                             });
                         });
                 }
