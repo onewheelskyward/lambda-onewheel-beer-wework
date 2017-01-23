@@ -13,15 +13,31 @@ exports.handler = function(event, context) {
 
     var params = {
         TableName: tableName,
-        // KeyConditionExpression: 'Location = :location',
-        // Limit: 1,
-        // ScanIndexForward: true   // true = ascending, false = descending
-        // ExpressionAttributeValues: {
-        //     ':location': location
-        // }
+        IndexName: 'wework-index',
+        KeyConditionExpression: 'wework = :wework',
+        ExpressionAttributeValues: {
+            ':wework': 'customhouse'
+        }
     };
     // Standard usage- return list.
-    dynamo.scan(params, function (err, result) {
+    console.log(params);
+    dynamo.query(params, function (err, result) {
+    // docClient.get(params, function (err, result) {
+        if (err) {
+            console.log(err);
+            superagent
+                .post(postBody.response_url)
+                .send({response_type: 'in_channel', text: err})
+                .set('Content-type', 'application/json')
+                .end(function (err, res) {
+                    console.log("Posted successfully!");
+                    context.succeed({
+                        statusCode: 200,
+                        headers: {},
+                        body: ""
+                    });
+                });
+        }
         console.log("Get result: " + JSON.stringify(result));
         var arrayCount = 0;
         var responseString = "";
