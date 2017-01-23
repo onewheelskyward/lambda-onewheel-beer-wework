@@ -25,18 +25,6 @@ exports.handler = function(event, context) {
     // docClient.get(params, function (err, result) {
         if (err) {
             console.log(err);
-            superagent
-                .post(postBody.response_url)
-                .send({response_type: 'in_channel', text: err})
-                .set('Content-type', 'application/json')
-                .end(function (err, res) {
-                    console.log("Posted successfully!");
-                    context.succeed({
-                        statusCode: 200,
-                        headers: {},
-                        body: ""
-                    });
-                });
         }
         console.log("Get result: " + JSON.stringify(result));
         var arrayCount = 0;

@@ -16,21 +16,43 @@ exports.handler = function(event, context) {
 
     // Standard usage- return list.
     if (!postBody.text) {
-        dynamo.scan({ TableName: tableName }, function (err, result) {
+        var params = {
+            TableName: tableName,
+            IndexName: 'wework-index',
+            KeyConditionExpression: 'wework = :wework',
+            ExpressionAttributeValues: {
+                ':wework': 'customhouse'
+            }
+        };
+        dynamo.query(params, function (err, result) {
+            if (err) {
+                console.log(err);
+            }
             console.log("Get result: " + JSON.stringify(result));
+            var arrayCount = 0;
+            var responseString = "";
+
+            console.log(result.Count);
             result.Items.forEach(function (beer) {
-                superagent
-                    .post(postBody.response_url)
-                    .send({ response_type: 'in_channel', text: beer.location + ": " + beer.beer})
-                    .set('Content-type', 'application/json')
-                    .end(function(err, res) {
-                        console.log("Posted successfully!");
-                        context.succeed({
-                            statusCode: 200,
-                            headers: {},
-                            body: ""
+                responseString += beer.location + ": " + beer.beer + "\n";
+                arrayCount++;
+
+                console.log("arrayCount: " + arrayCount + ", result.Count: " + result.Count);
+                if (arrayCount == result.Count) {
+                    console.log("Creating response! string: " + responseString);
+                    superagent
+                        .post(postBody.response_url)
+                        .send({response_type: 'in_channel', text: responseString})
+                        .set('Content-type', 'application/json')
+                        .end(function (err, res) {
+                            console.log("Posted successfully!");
+                            context.succeed({
+                                statusCode: 200,
+                                headers: {},
+                                body: ""
+                            });
                         });
-                    });
+                }
             })
         });
     } else {
