@@ -12,7 +12,7 @@ exports.handler = function(event, context) {
     var postBody = queryString.parse(event.body);
     console.log(postBody);
 
-    var validLocations = ['1n', '1s', '2n', '2s', '3n'];
+    var validLocations = ['1n', '1s', '2n', '2s', '3n', '3s', '4'];
 
     // Standard usage- return list.
     if (!postBody.text) {
